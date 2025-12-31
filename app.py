@@ -10,9 +10,6 @@ qp = st.experimental_get_query_params()
 token_q = qp.get("token", [""])[0]
 obs_q   = qp.get("obs", [""])[0]
 
-token = st.text_input("Token", value=token_q, type="password")
-obs_url = st.text_input("Observation URL", value=obs_q)
-
 @st.cache_resource
 def _check_models_exist():
     assert os.path.exists("models/model_focalloss.h5"), "Missing models/model_focalloss.h5"
@@ -20,19 +17,35 @@ def _check_models_exist():
 _check_models_exist()
 
 def fetch_observation(token, obs_url):
-    r = requests.get(obs_url, headers={"Authorization": f"Bearer {token}"}, verify=False, timeout=20)
+    r = requests.get(
+        obs_url,
+        headers={"Authorization": f"Bearer {token}"},
+        verify=False,
+        timeout=20
+    )
     r.raise_for_status()
     return r.json()
 
-# ✅ 自動執行
+# ========= Patient Data（先放上來） =========
+patient_data_placeholder = st.empty()
+
+with patient_data_placeholder.container():
+    st.expander("Patient Data (Click to Expand)", expanded=False)
+
+# ========= Token & Observation URL（移到下面） =========
+token = st.text_input("Token", value=token_q, type="password")
+obs_url = st.text_input("Observation URL", value=obs_q)
+
+# ========= 自動執行邏輯（完全不動） =========
 if token and obs_url:
     with st.spinner("Fetching Patient Data..."):
         obs = fetch_observation(token, obs_url)
 
-    with st.expander("Patient Data (Click to Expand)", expanded=False):
-        st.json(obs)
+    # 回填 Patient Data
+    with patient_data_placeholder.container():
+        with st.expander("Patient Data (Click to Expand)", expanded=False):
+            st.json(obs)
 
-    # 用 /tmp 的暫存檔串流程
     with tempfile.TemporaryDirectory() as td:
         obs_path = os.path.join(td, "obs.json")
         ecg_csv  = os.path.join(td, "ECG_5min.csv")
@@ -42,7 +55,12 @@ if token and obs_url:
             json.dump(obs, f)
 
         with st.spinner("Parsing ECG..."):
-            subprocess.check_call(["python", "parse_fhir_ecg_to_csv.py", obs_path, ecg_csv])
+            subprocess.check_call([
+                "python",
+                "parse_fhir_ecg_to_csv.py",
+                obs_path,
+                ecg_csv
+            ])
 
         with st.spinner("Generating HRV features..."):
             proc = subprocess.run(
@@ -56,12 +74,13 @@ if token and obs_url:
                 text=True
             )
             if proc.returncode != 0:
-                raise RuntimeError("generate_HRV_10_features.py failed")
+                raise RuntimeError(proc.stderr)
 
         with st.spinner("Predicting shock risk..."):
-            preds = predict_shock(h0_csv)  # numpy array
+            preds = predict_shock(h0_csv)
 
     st.success("Done")
     st.metric("Estimate Risk", f"{preds[0]*100:.2f}%")
+
 else:
     st.info("Please enter Token and Observation URL to start calculation")
