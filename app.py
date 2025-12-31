@@ -24,13 +24,8 @@ def fetch_observation(token, obs_url):
     r.raise_for_status()
     return r.json()
 
-run_btn = st.button("Run prediction")
-
-if run_btn:
-    if not token or not obs_url:
-        st.error("Please Offer Token and Observation URL")
-        st.stop()
-
+# ✅ 自動執行
+if token and obs_url:
     with st.spinner("Fetching Patient Data..."):
         obs = fetch_observation(token, obs_url)
 
@@ -50,7 +45,6 @@ if run_btn:
             subprocess.check_call(["python", "parse_fhir_ecg_to_csv.py", obs_path, ecg_csv])
 
         with st.spinner("Generating HRV features..."):
-            # 你已把 generate script 改成 CLI：python generate_hrv_10_features.py <ecg_csv> <h0_csv>
             proc = subprocess.run(
                 [
                     "python",
@@ -61,20 +55,13 @@ if run_btn:
                 capture_output=True,
                 text=True
             )
-            
-            # st.subheader("HRV stdout")
-            # st.code(proc.stdout)
-            
-            # st.subheader("HRV stderr")
-            # st.code(proc.stderr)
-            
             if proc.returncode != 0:
                 raise RuntimeError("generate_HRV_10_features.py failed")
-
 
         with st.spinner("Predicting shock risk..."):
             preds = predict_shock(h0_csv)  # numpy array
 
     st.success("Done")
-
     st.metric("Estimate Risk", f"{preds[0]*100:.2f}%")
+else:
+    st.info("Please enter Token and Observation URL to start calculation")
