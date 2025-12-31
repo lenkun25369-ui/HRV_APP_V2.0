@@ -4,7 +4,7 @@ import requests
 
 from shock_rate import predict_shock
 
-st.title("ECG → HRV → Shock Risk")
+st.title("Shock Risk Based on HRV")
 
 qp = st.experimental_get_query_params()
 token_q = qp.get("token", [""])[0]
@@ -28,13 +28,13 @@ run_btn = st.button("Run prediction")
 
 if run_btn:
     if not token or not obs_url:
-        st.error("請先提供 token 與 Observation URL")
+        st.error("Please Offer Token and Observation URL")
         st.stop()
 
-    with st.spinner("Fetching Observation..."):
+    with st.spinner("Fetching Patient Data..."):
         obs = fetch_observation(token, obs_url)
 
-    with st.expander("Raw Observation JSON", expanded=False):
+    with st.expander("Patient Data (Click to Expand)", expanded=False):
         st.json(obs)
 
     # 用 /tmp 的暫存檔串流程
