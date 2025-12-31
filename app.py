@@ -62,11 +62,11 @@ if run_btn:
                 text=True
             )
             
-            st.subheader("HRV stdout")
-            st.code(proc.stdout)
+            # st.subheader("HRV stdout")
+            # st.code(proc.stdout)
             
-            st.subheader("HRV stderr")
-            st.code(proc.stderr)
+            # st.subheader("HRV stderr")
+            # st.code(proc.stderr)
             
             if proc.returncode != 0:
                 raise RuntimeError("generate_HRV_10_features.py failed")
