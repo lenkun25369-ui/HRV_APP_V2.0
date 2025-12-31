@@ -83,68 +83,68 @@ if token and obs_url:
     with risk_placeholder.container():
         risk_pct = round(preds[0] * 100, 2)
 
-# 簡單風險分級（可之後再調）
-if risk_pct < 20:
-    risk_label = "LOW RISK"
-    risk_color = "#2ecc71"
-elif risk_pct < 40:
-    risk_label = "MODERATE RISK"
-    risk_color = "#f39c12"
-else:
-    risk_label = "HIGH RISK"
-    risk_color = "#e74c3c"
-
-with risk_placeholder.container():
-    pie_col, value_col = st.columns([1, 2], gap="large")
-
-    # ---------- 左：圓餅圖 ----------
-    with pie_col:
-        components.html(
-            f"""
-            <style>
-            .pie {{
-                width: 120px;
-                height: 120px;
-                border-radius: 50%;
-                background: conic-gradient(
-                    {risk_color} {risk_pct}%,
-                    #2c2c2c {risk_pct}% 100%
-                );
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }}
-            .pie-inner {{
-                width: 70px;
-                height: 70px;
-                background: #0e1117;
-                border-radius: 50%;
-            }}
-            </style>
-            <div style="display:flex; justify-content:center;">
-                <div class="pie">
-                    <div class="pie-inner"></div>
+    # 簡單風險分級（可之後再調）
+    if risk_pct < 20:
+        risk_label = "LOW RISK"
+        risk_color = "#2ecc71"
+    elif risk_pct < 40:
+        risk_label = "MODERATE RISK"
+        risk_color = "#f39c12"
+    else:
+        risk_label = "HIGH RISK"
+        risk_color = "#e74c3c"
+    
+    with risk_placeholder.container():
+        pie_col, value_col = st.columns([1, 2], gap="large")
+    
+        # ---------- 左：圓餅圖 ----------
+        with pie_col:
+            components.html(
+                f"""
+                <style>
+                .pie {{
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 50%;
+                    background: conic-gradient(
+                        {risk_color} {risk_pct}%,
+                        #2c2c2c {risk_pct}% 100%
+                    );
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }}
+                .pie-inner {{
+                    width: 70px;
+                    height: 70px;
+                    background: #0e1117;
+                    border-radius: 50%;
+                }}
+                </style>
+                <div style="display:flex; justify-content:center;">
+                    <div class="pie">
+                        <div class="pie-inner"></div>
+                    </div>
                 </div>
-            </div>
-            """,
-            height=140,
-        )
-
-    # ---------- 右：數字與風險 ----------
-    with value_col:
-        st.markdown(
-            f"""
-            <div style="text-align:center; margin-top:18px;">
-                <div style="font-size:42px; font-weight:800;">
-                    {risk_pct:.2f}%
+                """,
+                height=140,
+            )
+    
+        # ---------- 右：數字與風險 ----------
+        with value_col:
+            st.markdown(
+                f"""
+                <div style="text-align:center; margin-top:18px;">
+                    <div style="font-size:42px; font-weight:800;">
+                        {risk_pct:.2f}%
+                    </div>
+                    <div style="font-size:20px; font-weight:700; color:{risk_color};">
+                        {risk_label}
+                    </div>
                 </div>
-                <div style="font-size:20px; font-weight:700; color:{risk_color};">
-                    {risk_label}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
 
 else:
