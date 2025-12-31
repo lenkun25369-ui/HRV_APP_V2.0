@@ -5,7 +5,7 @@ import streamlit.components.v1 as components
 from shock_rate import predict_shock
 
 st.title("SHIELD")
-st.caption("AI-HRV Sepsis Early Warning System")
+st.caption("HRV Sepsis Early Warning System Powerd by AI")
 risk_placeholder = st.empty()
 qp = st.experimental_get_query_params()
 token_q = qp.get("token", [""])[0]
