@@ -1,7 +1,7 @@
 import os, json, tempfile, subprocess
 import streamlit as st
 import requests
-from streamlit import components
+import streamlit.components.v1 as components
 from shock_rate import predict_shock
 
 st.title("Shock Risk Based on HRV")
