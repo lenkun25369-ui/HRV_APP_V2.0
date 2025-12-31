@@ -76,6 +76,5 @@ if run_btn:
             preds = predict_shock(h0_csv)  # numpy array
 
     st.success("Done")
-    st.write("predictions_test:")
-    st.write(preds)
-    st.metric("predictions_test[0] (example)", float(preds[0]))
+
+    st.metric("Estimate Risk", f"{preds[0]*100:.2f}%")
