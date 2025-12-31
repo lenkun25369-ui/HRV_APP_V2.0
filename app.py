@@ -5,7 +5,7 @@ import requests
 from shock_rate import predict_shock
 
 st.title("Shock Risk Based on HRV")
-
+risk_placeholder = st.empty()
 qp = st.experimental_get_query_params()
 token_q = qp.get("token", [""])[0]
 obs_q   = qp.get("obs", [""])[0]
@@ -80,7 +80,9 @@ if token and obs_url:
             preds = predict_shock(h0_csv)
 
     st.success("Done")
-    st.metric("Estimate Risk", f"{preds[0]*100:.2f}%")
+    with risk_placeholder.container():
+        st.metric("Estimate Risk", f"{preds[0]*100:.2f}%")
+
 
 else:
     st.info("Please enter Token and Observation URL to start calculation")
