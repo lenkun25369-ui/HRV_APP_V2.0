@@ -75,28 +75,42 @@ if token and obs_url:
         with open(obs_path, "w") as f:
             json.dump(obs, f)
 
+        # ----- Parse ECG -----
         with st.spinner("Parsing ECG..."):
-            subprocess.check_call([
-                "python",
-                "parse_fhir_ecg_to_csv.py",
-                obs_path,
-                ecg_csv
-            ])
-
-        with st.spinner("Generating HRV features..."):
             proc = subprocess.run(
-                [
-                    "python",
-                    "generate_HRV_10_features.py",
-                    ecg_csv,
-                    h0_csv
-                ],
+                ["python", "parse_fhir_ecg_to_csv.py", obs_path, ecg_csv],
                 capture_output=True,
                 text=True
             )
             if proc.returncode != 0:
                 raise RuntimeError(proc.stderr)
 
+            # 從 stdout 讀回記憶體 ECG array
+            try:
+                ecg_signal = json.loads(proc.stdout.splitlines()[-1])
+            except Exception as e:
+                st.warning(f"Failed to load ECG from subprocess: {e}")
+                ecg_signal = None
+
+        # ----- Generate HRV Features -----
+        with st.spinner("Generating HRV features..."):
+            proc = subprocess.run(
+                ["python", "generate_HRV_10_features.py", ecg_csv, h0_csv],
+                capture_output=True,
+                text=True
+            )
+            if proc.returncode != 0:
+                raise RuntimeError(proc.stderr)
+
+            # 從 stdout 讀回記憶體 HRV dataframe
+            try:
+                h0_json = proc.stdout.splitlines()[-1]
+                hrv_df = pd.read_json(h0_json, orient="records")
+            except Exception as e:
+                st.warning(f"Failed to load HRV from subprocess: {e}")
+                hrv_df = None
+
+        # ----- Predict Shock Risk -----
         with st.spinner("Predicting shock risk..."):
             preds = predict_shock(h0_csv)
 
@@ -174,15 +188,16 @@ if token and obs_url:
             )
 
     # =========================================
-    # NEW: ECG Input & HRV Output
+    # ECG Input & HRV Output
     # =========================================
     st.markdown("---")
     st.subheader("ECG Input & HRV Features")
 
     # ----- ECG Plot -----
     try:
-        ecg_df = pd.read_csv(ecg_csv, header=None)
-        ecg_signal = ecg_df.iloc[:, 0].values
+        if ecg_signal is None:
+            ecg_df = pd.read_csv(ecg_csv, header=None)
+            ecg_signal = ecg_df.iloc[:, 0].values
 
         fig, ax = plt.subplots(figsize=(10, 3))
         ax.plot(ecg_signal, linewidth=1)
@@ -190,7 +205,6 @@ if token and obs_url:
         ax.set_xlabel("Sample Index")
         ax.set_ylabel("Amplitude")
         ax.grid(alpha=0.3)
-
         st.pyplot(fig)
 
     except Exception as e:
@@ -198,7 +212,8 @@ if token and obs_url:
 
     # ----- HRV Table -----
     try:
-        hrv_df = pd.read_csv(h0_csv)
+        if hrv_df is None:
+            hrv_df = pd.read_csv(h0_csv)
         st.markdown("**HRV Features Output**")
         st.dataframe(hrv_df, use_container_width=True)
 
