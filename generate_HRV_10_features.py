@@ -5,6 +5,7 @@
 import os
 import sys
 import types
+import json
 
 os.environ["MPLBACKEND"] = "Agg"
 
