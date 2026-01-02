@@ -14,7 +14,7 @@ st.title("SHIELD")
 st.caption("HRV Sepsis Early Warning System Powerd by AI")
 
 risk_placeholder = st.empty()
-
+ecg_hrv_placeholder = st.empty() 
 qp = st.experimental_get_query_params()
 token_q = qp.get("token", [""])[0]
 obs_q   = qp.get("obs", [""])[0]
@@ -55,7 +55,7 @@ with patient_data_placeholder.container():
 # =========================================
 token = st.text_input("Token", value=token_q, type="password")
 obs_url = st.text_input("Observation URL", value=obs_q)
-
+st.markdown("---")
 # =========================================
 # Auto Run Logic (UNCHANGED)
 # =========================================
@@ -190,35 +190,39 @@ if token and obs_url:
     # =========================================
     # ECG Input & HRV Output
     # =========================================
-    st.markdown("---")
-    st.subheader("ECG Input & HRV Features")
-
-    # ----- ECG Plot -----
-    try:
-        if ecg_signal is None:
-            ecg_df = pd.read_csv(ecg_csv, header=None)
-            ecg_signal = ecg_df.iloc[:, 0].values
-
-        fig, ax = plt.subplots(figsize=(10, 3))
-        ax.plot(ecg_signal, linewidth=1)
-        ax.set_title("ECG Signal (Input to HRV Generator)")
-        ax.set_xlabel("Sample Index")
-        ax.set_ylabel("Amplitude")
-        ax.grid(alpha=0.3)
-        st.pyplot(fig)
-
-    except Exception as e:
-        st.warning(f"Failed to plot ECG signal: {e}")
-
-    # ----- HRV Table -----
-    try:
-        if hrv_df is None:
-            hrv_df = pd.read_csv(h0_csv)
-        st.markdown("**HRV Features Output**")
-        st.dataframe(hrv_df, use_container_width=True)
-
-    except Exception as e:
-        st.warning(f"Failed to load HRV features: {e}")
-
+    # =========================================
+    # ECG Input & HRV Features (用新 placeholder)
+    # =========================================
+    with ecg_hrv_placeholder.container():
+        st.markdown("---")
+        st.subheader("ECG Input & HRV Features")
+    
+        # ----- ECG Plot -----
+        try:
+            if ecg_signal is None:
+                ecg_df = pd.read_csv(ecg_csv, header=None)
+                ecg_signal = ecg_df.iloc[:, 0].values
+    
+            fig, ax = plt.subplots(figsize=(10, 3))
+            ax.plot(ecg_signal, linewidth=1)
+            ax.set_title("ECG Signal (Input to HRV Generator)")
+            ax.set_xlabel("Sample Index")
+            ax.set_ylabel("Amplitude")
+            ax.grid(alpha=0.3)
+            st.pyplot(fig)
+    
+        except Exception as e:
+            st.warning(f"Failed to plot ECG signal: {e}")
+    
+        # ----- HRV Table -----
+        try:
+            if hrv_df is None:
+                hrv_df = pd.read_csv(h0_csv)
+            st.markdown("**HRV Features Output**")
+            st.dataframe(hrv_df, use_container_width=True)
+    
+        except Exception as e:
+            st.warning(f"Failed to load HRV features: {e}")
+   
 else:
     st.info("Please enter Token and Observation URL to start calculation")
