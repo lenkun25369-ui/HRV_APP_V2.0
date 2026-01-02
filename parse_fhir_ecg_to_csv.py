@@ -20,5 +20,5 @@ df.to_csv(OUT_CSV_COPY, index=False)
 print(f"[OK] ECG saved to {OUT_CSV}, n={len(df)}")
 print(f"[OK] ECG copy saved to {OUT_CSV_COPY}")
 
-import json
+
 print(json.dumps(ecg_values))
